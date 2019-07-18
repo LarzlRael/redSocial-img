@@ -9,33 +9,46 @@ imageController.index = (req, res) => {
 }
 imageController.create = async (req, res) => {
 
+    const saveImage = async () => {
+        const imgURL = randomNumber();
+        const imageDuplicate = Image.find({ fileName: imgURL });
 
-    const imgURL = randomNumber();
+        if (imageDuplicate.lenth > 0) {
+            saveImage();
+        } else {
+            const ext = path.extname(req.file.originalname).toLowerCase();
+            const image_path = req.file.path;
+            const tartGetPath = path.resolve(`src/public/upload/${imgURL}${ext}`);
+            console.log(tartGetPath);
+
+            if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif') {
+                await fsextra.rename(image_path, tartGetPath);
+
+                const newImage = new Image({
+                    title: req.body.title,
+                    fileName: imgURL + ext,
+                    description: req.body.description
+                })
+
+                const imageSave = await newImage.save();
+                console.log('imagen Guarada');
 
 
-    const ext = path.extname(req.file.originalname).toLowerCase();
-    const image_path = req.file.path;
-    const tartGetPath = path.resolve(`src/public/upload/${imgURL}${ext}`);
-    console.log(tartGetPath);
+                res.send('works :D')
+
+            } else {
+                await fsextra.unlink(image_path);
+                res.status(500).json({ error: 'only image are allowed' })
+            }
+        }
 
 
-    if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif') {
-        await fsextra.rename(image_path, tartGetPath);
 
-        const newImage = new Image({
-            title:req.body.title,
-            fileName:req.body.description+ext,
-            description:req.body.description
-        })
-
-        const imageSave = await newImage.save();
-        console.log('imagen guarada :D ');
-        res.send('guarada')
-        
-    } else {
-        await fsextra.unlink(image_path);
-        res.status(500).json({ error: 'only image are allowed' })
     }
+
+
+    saveImage();
+
 
 }
 imageController.likes = (req, res) => {
