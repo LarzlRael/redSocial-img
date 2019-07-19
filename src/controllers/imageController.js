@@ -3,10 +3,23 @@ const path = require('path');
 const { randomNumber } = require('../helpers/libs');
 const fsextra = require('fs-extra');
 // importando el moodelo
-const { Image } = require('../models/index');
-imageController.index = (req, res) => {
-    res.render('index');
+const { Image, Comment } = require('../models/index');
+const md5 = require('md5');
+
+
+imageController.index = async (req, res) => {
+    
+    // haciendo las consultas para enviar a la vistas 
+    // el $regex es para buscar con una expresion regular, poniendo solo parte de este va a buscar el resto
+    const oneImage = await Image.findOne({ fileName: { $regex: req.params.image_id } });
+    const comments = await Comment.find({ image_id: oneImage._id });
+    
+    console.log("cantidad de imagenes : " + comments);
+
+    res.render('image', { oneImage, comments });
 }
+
+
 imageController.create = async (req, res) => {
 
     const saveImage = async () => {
@@ -33,8 +46,8 @@ imageController.create = async (req, res) => {
                 const imageSave = await newImage.save();
                 console.log('imagen Guarada');
 
+                res.redirect('/image/' + imgURL);
 
-                res.send('works :D')
 
             } else {
                 await fsextra.unlink(image_path);
@@ -54,8 +67,16 @@ imageController.create = async (req, res) => {
 imageController.likes = (req, res) => {
     res.send('create!!!');
 }
-imageController.coment = (req, res) => {
-    res.send('commnet!!!');
+imageController.comments = async (req, res) => {
+    const imageExist = await Image.findOne({ fileName: { $regex: req.params.image_id } });
+    if (imageExist) {
+        const newComment = new Comment(req.body);
+        newComment.gravatar = md5(newComment.email);
+        newComment.image_id = imageExist._id;
+        await newComment.save()
+        res.redirect('/image/' + imageExist.uniqueID);
+    }
+
 }
 imageController.remove = (req, res) => {
     res.send('removeee!!!');
