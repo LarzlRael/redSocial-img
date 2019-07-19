@@ -8,15 +8,28 @@ const md5 = require('md5');
 
 
 imageController.index = async (req, res) => {
-    
+
+    // haciendo un modelo que contenga los demas modelos
+    const viewModel = { image: {}, comments: {} };
     // haciendo las consultas para enviar a la vistas 
     // el $regex es para buscar con una expresion regular, poniendo solo parte de este va a buscar el resto
     const oneImage = await Image.findOne({ fileName: { $regex: req.params.image_id } });
-    const comments = await Comment.find({ image_id: oneImage._id });
-    
-    console.log("cantidad de imagenes : " + comments);
 
-    res.render('image', { oneImage, comments });
+    if (oneImage) {
+        // con este codigo vamos a actualizar automaticamente el modulo de vistas
+        oneImage.views = oneImage.views + 1;
+        viewModel.image = oneImage;
+        // guardado en la base de datos el numero de vistas
+        await oneImage.save();
+
+        const comments = await Comment.find({ image_id: oneImage._id });
+        viewModel.comments = comments;
+        console.log('EStas son todas la vistas de que se mandan : ' + viewModel);
+
+        res.render('image', {oneImage, comments});
+    } else {
+        res.redirect('/');
+    }
 }
 
 
@@ -75,6 +88,8 @@ imageController.comments = async (req, res) => {
         newComment.image_id = imageExist._id;
         await newComment.save()
         res.redirect('/image/' + imageExist.uniqueID);
+    } else {
+        res.redirect('/');
     }
 
 }
