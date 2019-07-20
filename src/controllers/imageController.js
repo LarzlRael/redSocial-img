@@ -26,7 +26,7 @@ imageController.index = async (req, res) => {
         viewModel.comments = comments;
         console.log('EStas son todas la vistas de que se mandan : ' + viewModel);
 
-        res.render('image', {oneImage, comments});
+        res.render('image', { oneImage, comments });
     } else {
         res.redirect('/');
     }
@@ -67,18 +67,21 @@ imageController.create = async (req, res) => {
                 res.status(500).json({ error: 'only image are allowed' })
             }
         }
-
-
-
+    }
+    saveImage();
+}
+imageController.likes = async (req, res) => {
+    const ImageExist = await Image.findOne({ fileName: { $regex: req.params.image_id } });
+    if (ImageExist) {
+        ImageExist.likes = await ImageExist.likes + 1;
+        await ImageExist.save();
+        res.json({
+            likes: ImageExist.likes
+        })
+    }else{
+        res.status(500).json({error: 'internal error :| '});
     }
 
-
-    saveImage();
-
-
-}
-imageController.likes = (req, res) => {
-    res.send('create!!!');
 }
 imageController.comments = async (req, res) => {
     const imageExist = await Image.findOne({ fileName: { $regex: req.params.image_id } });
