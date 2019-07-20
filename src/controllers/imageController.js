@@ -21,7 +21,7 @@ imageController.index = async (req, res) => {
         viewModel.image = oneImage;
         // guardado en la base de datos el numero de vistas
         await oneImage.save();
-
+        
         const comments = await Comment.find({ image_id: oneImage._id });
         viewModel.comments = comments;
         console.log('EStas son todas la vistas de que se mandan : ' + viewModel);
@@ -78,8 +78,8 @@ imageController.likes = async (req, res) => {
         res.json({
             likes: ImageExist.likes
         })
-    }else{
-        res.status(500).json({error: 'internal error :| '});
+    } else {
+        res.status(500).json({ error: 'internal error :| ' });
     }
 
 }
@@ -96,8 +96,20 @@ imageController.comments = async (req, res) => {
     }
 
 }
-imageController.remove = (req, res) => {
-    res.send('removeee!!!');
+imageController.remove = async (req, res) => {
+    const { image_id } = req.params;
+    const imageDelete = await Image.findOne({ fileName: { $regex: image_id } });
+    console.log(imageDelete);
+    console.log('nombde de la imagen : ' + imageDelete.fileName);
+
+    if (imageDelete) {
+        await fsextra.unlink(path.resolve('./src/public/upload/' + imageDelete.fileName));
+        await Comment.deleteOne({ image_id: imageDelete._id });
+        await imageDelete.remove();
+        res.json({ eliminad: 'true' })
+    }
+
+
 }
 
 module.exports = imageController;

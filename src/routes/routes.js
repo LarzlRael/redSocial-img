@@ -11,6 +11,7 @@ router.get('/image/:image_id', imageController.index)
 router.post('/image/:image_id/likes', imageController.likes)
 
 router.post('/image/:image_id/comment', imageController.comments)
+
 router.delete('/image/:image_id', imageController.remove)
 
 
