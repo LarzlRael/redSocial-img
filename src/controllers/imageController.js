@@ -5,28 +5,30 @@ const fsextra = require('fs-extra');
 // importando el moodelo
 const { Image, Comment } = require('../models/index');
 const md5 = require('md5');
-
+// importando el modulo del sidebar
+const sidebar = require('../helpers/sidebar');
 
 imageController.index = async (req, res) => {
-
     // haciendo un modelo que contenga los demas modelos
-    const viewModel = { image: {}, comments: {} };
+    let viewModel = { image: {}, comments: {} };
     // haciendo las consultas para enviar a la vistas 
     // el $regex es para buscar con una expresion regular, poniendo solo parte de este va a buscar el resto
-    const oneImage = await Image.findOne({ fileName: { $regex: req.params.image_id } });
-
-    if (oneImage) {
+    const image = await Image.findOne({ fileName: { $regex: req.params.image_id } });
+    if (image) {
         // con este codigo vamos a actualizar automaticamente el modulo de vistas
-        oneImage.views = oneImage.views + 1;
-        viewModel.image = oneImage;
+        image.views = image.views + 1;
+
+        viewModel.image = image;
         // guardado en la base de datos el numero de vistas
-        await oneImage.save();
-        
-        const comments = await Comment.find({ image_id: oneImage._id });
+        await image.save();
+        // guardando los mentarios
+        const comments = await Comment.find({ image_id: image._id });
         viewModel.comments = comments;
+        viewModel = await sidebar(viewModel);
+        res.render('image', viewModel);
+
         console.log('EStas son todas la vistas de que se mandan : ' + viewModel);
 
-        res.render('image', { oneImage, comments });
     } else {
         res.redirect('/');
     }

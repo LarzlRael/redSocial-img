@@ -6,8 +6,8 @@ module.exports = async viewModel => {
 
 
     const result = await Promise.all([
-        Images.popular(),
         Stats(),
+        Images.popular(),
         Comments.newest(),
     ])
     viewModel.sidebar = {
