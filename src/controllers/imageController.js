@@ -27,7 +27,7 @@ imageController.index = async (req, res) => {
         viewModel = await sidebar(viewModel);
         res.render('image', viewModel);
 
-        console.log('EStas son todas la vistas de que se mandan : ' + viewModel);
+        
 
     } else {
         res.redirect('/');

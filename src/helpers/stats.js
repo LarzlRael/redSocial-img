@@ -6,14 +6,20 @@ async function imageCounter() {
 async function commentsCounter() {
     return await Comment.countDocuments();
 }
+
 async function imageTotalViewCounter() {
-    const result =await Image.aggregate([{
+    const result = await Image.aggregate([{
         $group: {
             _id: '1',
             viewsTotal: { $sum: '$views' }
         }
     }])
-    return result[0].viewsTotal;
+
+    let viewsTotal = 0;
+    if (result.length > 0) {
+        viewsTotal += result[0].viewsTotal;
+    }
+    return viewsTotal;
 }
 async function likesTotalCounter() {
     const result = await Image.aggregate([{
@@ -22,20 +28,24 @@ async function likesTotalCounter() {
             likesTotal: { $sum: '$likes' }
         }
     }])
-    return result[0].likesTotal;
+
+    let likesTotal = 0;
+    if (result.length > 0) {
+        likesTotal += result[0].likesTotal;
+    }
+    return likesTotal;
+
 }
 
 
 module.exports = async () => {
 
-    const results = await Promise.all(
-        [
-            imageCounter(),
-            commentsCounter(),
-            imageTotalViewCounter(),
-            likesTotalCounter()
-        ]
-    )
+    const results = await Promise.all([
+        imageCounter(),
+        commentsCounter(),
+        imageTotalViewCounter(),
+        likesTotalCounter()
+    ]);
 
     return {
         images: results[0],
@@ -43,5 +53,4 @@ module.exports = async () => {
         views: results[2],
         likes: results[3]
     }
-
 }
